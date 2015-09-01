@@ -28,13 +28,13 @@ memory_calculator:
   stack_threads: 400
   memory_sizes:
     heap:
-    metaspace: 200m..
+    metaspace: 250m..
     native:
     stack:
   memory_heuristics:
-    heap: 75
+    heap: 70
     metaspace: 10
-    native: 10
+    native: 15
     stack: 5
   memory_initials:
     heap: 100%
