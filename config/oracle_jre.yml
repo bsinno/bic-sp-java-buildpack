@@ -25,12 +25,12 @@ jre:
 memory_calculator:
   version: 2.+
   repository_root: ! '{default.repository.root}/memory-calculator/{platform}/{architecture}'
-  stack_threads: 400
+  stack_threads: 600
   memory_sizes:
     heap:
     metaspace: 250m..
     native:
-    stack:
+    stack: 300k..
   memory_heuristics:
     heap: 65
     metaspace: 10
