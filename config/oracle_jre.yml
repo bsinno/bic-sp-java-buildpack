@@ -32,9 +32,9 @@ memory_calculator:
     native:
     stack:
   memory_heuristics:
-    heap: 70
+    heap: 65
     metaspace: 10
-    native: 15
+    native: 20
     stack: 5
   memory_initials:
     heap: 100%
