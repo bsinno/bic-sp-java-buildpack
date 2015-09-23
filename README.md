@@ -1,4 +1,8 @@
 # Cloud Foundry Java Buildpack for BICS Software Provisioning
+
+[![Join the chat at https://gitter.im/bsinno/bic-sp-java-buildpack](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bsinno/bic-sp-java-buildpack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![Join the chat at https://gitter.im/bsinno/bic-sp-java-buildpack](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bsinno/bic-sp-java-buildpack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/cloudfoundry/java-buildpack.svg?branch=master)](https://travis-ci.org/cloudfoundry/java-buildpack)
 [![Dependency Status](https://gemnasium.com/cloudfoundry/java-buildpack.svg)](https://gemnasium.com/cloudfoundry/java-buildpack)
 [![Code Climate](https://codeclimate.com/repos/5224adaec7f3a3415107004c/badges/bc49f7d7f8dfc47057c8/gpa.svg)](https://codeclimate.com/repos/5224adaec7f3a3415107004c/feed)
