@@ -156,3 +156,7 @@ This buildpack is released under version 2.0 of the [Apache License][].
 [Pull requests]: http://help.github.com/send-pull-requests
 [Running Cloud Foundry locally]: http://docs.cloudfoundry.org/deploying/run-local.html
 [Spring Boot]: http://projects.spring.io/spring-boot/
+
+## Additional Heapdump
+If you want to upload a heapdump to a server, you need a user-provided service, which called "heapdump-uploader". Here you have to set the credentials and heap dump sever url.
+`cf cups heapdump-uploader -p username,password,endpoint`

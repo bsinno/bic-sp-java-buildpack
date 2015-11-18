@@ -18,6 +18,9 @@ require 'fileutils'
 require 'java_buildpack/component/versioned_dependency_component'
 require 'java_buildpack/jre'
 require 'java_buildpack/util/tokenized_version'
+require 'java_buildpack/jre/memory/openjdk_memory_heuristic_factory'
+require 'java_buildpack/component'
+require 'java_buildpack/util/qualify_path'
 
 module JavaBuildpack
   module Jre
@@ -55,13 +58,52 @@ module JavaBuildpack
       def release
         @droplet.java_opts
           .add_system_property('java.io.tmpdir', '$TMPDIR')
-          .add_option('-XX:OnOutOfMemoryError', killjava)
+          .push('-XX:+HeapDumpOnOutOfMemoryError')
+          .add_option('-XX:HeapDumpPath', '$PWD/oom_heapdump.hprof')
+          .add_option('-XX:OnOutOfMemoryError',  killjava )
+          .concat memory
       end
 
       private
 
+      KEY_MEMORY_HEURISTICS = 'memory_heuristics'.freeze
+
+      KEY_MEMORY_SIZES = 'memory_sizes'.freeze
+
+      VERSION_8 = JavaBuildpack::Util::TokenizedVersion.new('1.8.0').freeze
+
+      private_constant :KEY_MEMORY_HEURISTICS, :KEY_MEMORY_SIZES, :VERSION_8
+      
+      def qualify_path(path, root = @droplet.root)
+        "$PWD/#{path.relative_path_from(root)}"
+      end
+      
+      
       def killjava
-        @droplet.sandbox + 'bin/killjava.sh'
+        if @application.services.one_service?'heapdump-uploader'
+          credentials = @application.services.find_service('heapdump-uploader')['credentials']
+          username = credentials['username']
+          password = credentials['password']
+          endpoint = credentials['endpoint']
+          qualify_path(@droplet.sandbox) + "\'/bin/killjava.sh #{username} #{password} #{endpoint}'"
+        else
+          @droplet.sandbox + 'bin/killjava.sh'
+        end
+      end
+
+      def memory
+        sizes      = @configuration[KEY_MEMORY_SIZES] ? @configuration[KEY_MEMORY_SIZES].clone : {}
+        heuristics = @configuration[KEY_MEMORY_HEURISTICS] ? @configuration[KEY_MEMORY_HEURISTICS].clone : {}
+
+        if @version < VERSION_8
+          heuristics.delete 'metaspace'
+          sizes.delete 'metaspace'
+        else
+          heuristics.delete 'permgen'
+          sizes.delete 'permgen'
+        end
+
+        OpenJDKMemoryHeuristicFactory.create_memory_heuristic(sizes, heuristics, @version).resolve
       end
 
     end
