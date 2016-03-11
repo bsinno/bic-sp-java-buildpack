@@ -56,7 +56,7 @@ module JavaBuildpack
 
      # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        toolPath = "#{@droplet.java_home.root.relative_path_from(@droplet.root)/lib/tools.jar"
+        toolPath = qualify_path_tool(@droplet.java_home.root) + "/lib/tools.jar"
         @droplet.java_opts
           .add_system_property('java.io.tmpdir', '$TMPDIR')
           .push('-XX:+HeapDumpOnOutOfMemoryError')
@@ -78,6 +78,10 @@ module JavaBuildpack
       
       def qualify_path(path, root = @droplet.root)
         "$PWD/#{path.relative_path_from(root)}"
+      end
+      
+      def qualify_path_tool(path, root = @droplet.root)
+        "#{path.relative_path_from(root)}"
       end
       
       
