@@ -54,12 +54,14 @@ module JavaBuildpack
         @droplet.copy_resources
       end
 
-      # (see JavaBuildpack::Component::BaseComponent#release)
+     # (see JavaBuildpack::Component::BaseComponent#release)
       def release
+        toolPath = ualify_java_home(@droplet.java_home.root) + "\'/lib/tools.jar'"
         @droplet.java_opts
           .add_system_property('java.io.tmpdir', '$TMPDIR')
           .push('-XX:+HeapDumpOnOutOfMemoryError')
-          .add_option('-XX:HeapDumpPath', '$PWD/oom_heapdump.hprof')
+          .push('-Xbootclasspath/a:'+ toolPath)
+          .add_option('-XX:HeapDumpPath', '$PWD/oom_heapdump_work.hprof')
           .add_option('-XX:OnOutOfMemoryError',  killjava )
           .concat memory
       end
@@ -76,6 +78,10 @@ module JavaBuildpack
       
       def qualify_path(path, root = @droplet.root)
         "$PWD/#{path.relative_path_from(root)}"
+      end
+      
+      def qualify_java_home(path, root = @droplet.root)
+        "#{path.relative_path_from(root)}"
       end
       
       
