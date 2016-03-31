@@ -19,19 +19,13 @@
 
 set -e
 
-SCRIPTDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-. $SCRIPTDIR/jbp-diagnostics-functions.sh
-upload_oom_heapdump_to_server "$1" "$2" "$3"
-
 echo "
 Process Status (Before)
 =======================
 $(ps -ef)
-
 ulimit (Before)
 ===============
 $(ulimit -a)
-
 Free Disk Space (Before)
 ========================
 $(df -h)
@@ -43,11 +37,9 @@ echo "
 Process Status (After)
 ======================
 $(ps -ef)
-
 ulimit (After)
 ==============
 $(ulimit -a)
-
 Free Disk Space (After)
 =======================
 $(df -h)
