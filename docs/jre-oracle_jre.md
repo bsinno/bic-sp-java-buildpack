@@ -23,7 +23,7 @@ Tags are printed to standard output by the buildpack detect script
 For details on the repository structure, see the [repository documentation][repositories].
 
 ## Configuration
-For general information on configuring the buildpack, refer to [Configuration and Extension][].
+For general information on configuring the buildpack, including how to specify configuration values through environment variables, refer to [Configuration and Extension][].
 
 The JRE can be configured by modifying the [`config/oracle_jre.yml`][] file in the buildpack fork.  The JRE uses the [`Repository` utility support][repositories] and so it supports the [version syntax][]  defined there.
 
@@ -39,14 +39,16 @@ The JRE can be configured by modifying the [`config/oracle_jre.yml`][] file in t
 The JRE can also be configured by overlaying a set of resources on the default distribution. To do this, add files to the `resources/oracle_jre` directory in the buildpack fork.
 
 #### JCE Unlimited Strength
-To add the JCE Unlimited Strength `local_policy.jar`, add your file to `resources/oracle_jre/lib/security/local_policy.jar`.  This file will be overlayed onto the Oracle distribution.
+To add the JCE Unlimited Strength `local_policy.jar`, add your file to `resources/oracle_jre/lib/security/local_policy.jar`. In case you you'r using the 'server jre', then the file should go to `resources/oracle_jre/jre/lib/security/local_policy.jar`. This file will be overlayed onto the Oracle distribution.
 
 #### Custom CA Certificates
 To add custom SSL certificates, add your `cacerts` file to `resources/oracle_jre/lib/security/cacerts`.  This file will be overlayed onto the Oracle distribution.
 ### Memory
 The total available memory is specified when an application is pushed as part of it's configuration. The Java buildpack uses this value to control the JRE's use of various regions of memory. The JRE memory settings can be influenced by configuring the `memory_sizes`, `memory_heuristics`, `memory_initials` and/or `stack_threads` mappings.
 
-Note: if the total available memory is scaled up or down, the Java buildpack will re-calculate the JRE memory settings the next time the application is started.
+Note: If the total available memory is scaled up or down, the Java buildpack will re-calculate the JRE memory settings the next time the application is started.
+
+Note: If setting an initial Stack size, depending on the version of Java and the operating system used by Cloud Foundry the JRE will require a minimum `-Xss` value. This tends to be between `100k` and `250k`.
 
 #### Memory Sizes
 The following optional properties may be specified in the `memory_sizes` mapping.
