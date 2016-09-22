@@ -1,7 +1,5 @@
 # Cloud Foundry Java Buildpack for BICS Software Provisioning
 
-[![Join the chat at https://gitter.im/bsinno/bic-sp-java-buildpack](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bsinno/bic-sp-java-buildpack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 The `java-buildpack` is a [Cloud Foundry][] buildpack for running JVM-based applications.  It is designed to run many JVM-based applications ([Grails][], [Groovy][], Java Main, [Play Framework][], [Spring Boot][], and Servlet) with no additional configuration, but supports configuration of the standard components, and extension to add custom components.
 
 ## Usage
