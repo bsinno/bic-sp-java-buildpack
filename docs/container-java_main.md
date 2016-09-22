@@ -9,7 +9,8 @@ Command line arguments may optionally be configured.
 
 <table>
   <tr>
-    <td><strong>Detection Criteria</strong></td><td><tt>Main-Class</tt> attribute set in <tt>META-INF/MANIFEST.MF</tt> or <tt>java_main_class</tt> set in <tt>config/java_main.yml<tt></td>
+    <td><strong>Detection Criteria</strong></td>
+    <td><tt>Main-Class</tt> attribute set in <tt>META-INF/MANIFEST.MF</tt> or <tt>java_main_class</tt> set in <tt>config/java_main.yml<tt></td>
   </tr>
   <tr>
     <td><strong>Tags</strong></td>
@@ -18,14 +19,14 @@ Command line arguments may optionally be configured.
 </table>
 Tags are printed to standard output by the buildpack detect script
 
-If the application uses Spring, [Spring profiles][] can be specified by setting the [`SPRING_PROFILES_ACTIVE`][] environment variable. This is automatically detected and used by Spring. The Spring Auto-reconfiguration Framework will specify the `cloud` profile in addition to any others. 
+If the application uses Spring, [Spring profiles][] can be specified by setting the [`SPRING_PROFILES_ACTIVE`][] environment variable. This is automatically detected and used by Spring. The Spring Auto-reconfiguration Framework will specify the `cloud` profile in addition to any others.
 
 ## Spring Boot
 
 If the main class is Spring Boot's `JarLauncher`, `PropertiesLauncher` or `WarLauncher`, the Java Main Container adds a `--server.port` argument to the command so that the application uses the correct port.
 
 ## Configuration
-For general information on configuring the buildpack, refer to [Configuration and Extension][].
+For general information on configuring the buildpack, including how to specify configuration values through environment variables, refer to [Configuration and Extension][].
 
 The container can be configured by modifying the `config/java_main.yml` file in the buildpack fork.
 

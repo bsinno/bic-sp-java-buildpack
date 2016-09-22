@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2015 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -75,16 +75,16 @@ module JavaBuildpack
       VERSION_8 = JavaBuildpack::Util::TokenizedVersion.new('1.8.0').freeze
 
       private_constant :KEY_MEMORY_HEURISTICS, :KEY_MEMORY_SIZES, :VERSION_8
-      
+
       def qualify_path(path, root = @droplet.root)
         "$PWD/#{path.relative_path_from(root)}"
       end
-      
+
       def qualify_path_tool(path, root = @droplet.root)
         "#{path.relative_path_from(root)}"
       end
-      
-      
+
+
       def killjava
         if @application.services.one_service?'heapdump-uploader'
           credentials = @application.services.find_service('heapdump-uploader')['credentials']

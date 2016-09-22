@@ -1,5 +1,5 @@
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2015 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 # e.g.  repository_root: "http://example.com/oracle-jre/{platform}/{architecture}"
 ---
 jre:
-  version: 1.8.0_+
+  version: 1.8.0_10+
   repository_root: "http://wn-devops-fs.internal.bosch-iot-cloud.com/jre/"
 memory_calculator:
   version: 2.+

@@ -14,7 +14,7 @@ The OpenJDK JRE provides Java runtimes from the [OpenJDK][] project.  Versions o
 Tags are printed to standard output by the buildpack detect script
 
 ## Configuration
-For general information on configuring the buildpack, refer to [Configuration and Extension][].
+For general information on configuring the buildpack, including how to specify configuration values through environment variables, refer to [Configuration and Extension][].
 
 The JRE can be configured by modifying the [`config/open_jdk_jre.yml`][] file in the buildpack fork.  The JRE uses the [`Repository` utility support][repositories] and so it supports the [version syntax][]  defined there.
 
@@ -24,7 +24,7 @@ The JRE can be configured by modifying the [`config/open_jdk_jre.yml`][] file in
 | `memory_heuristics` | Default memory size weightings, described below under "Memory Weightings".
 | `memory_initials` | Initial memory sizes, described below under "Memory Initials".
 | `repository_root` | The URL of the OpenJDK repository index ([details][repositories]).
-| `version` | The version of Java runtime to use.  Candidate versions can be found in the listings for [centos6][], [lucid][], [mountainlion][], and [precise][]. Note: version 1.8.0 and higher require the `memory_sizes` and `memory_heuristics` mappings to specify `metaspace` rather than `permgen`.
+| `version` | The version of Java runtime to use.  Candidate versions can be found in the listings for [mountainlion][], [precise][], and [trusty][]. Note: version 1.8.0 and higher require the `memory_sizes` and `memory_heuristics` mappings to specify `metaspace` rather than `permgen`.
 
 ### Additional Resources
 The JRE can also be configured by overlaying a set of resources on the default distribution. To do this, add files to the `resources/open_jdk_jre` directory in the buildpack fork.
@@ -38,7 +38,9 @@ To add custom SSL certificates, add your `cacerts` file to `resources/open_jdk_j
 ### Memory
 The total available memory is specified when an application is pushed as part of it's configuration. The Java buildpack uses this value to control the JRE's use of various regions of memory. The JRE memory settings can be influenced by configuring the `memory_sizes`, `memory_heuristics`, `memory_initials` and/or `stack_threads` mappings.
 
-Note: if the total available memory is scaled up or down, the Java buildpack will re-calculate the JRE memory settings the next time the application is started.
+Note: If the total available memory is scaled up or down, the Java buildpack will re-calculate the JRE memory settings the next time the application is started.
+
+Note: If setting an initial Stack size, depending on the version of Java and the operating system used by Cloud Foundry the JRE will require a minimum `-Xss` value. This tends to be between `100k` and `250k`.
 
 #### Memory Sizes
 The following optional properties may be specified in the `memory_sizes` mapping.
@@ -108,11 +110,10 @@ Termination is guaranteed since there is a finite number of memory types and in 
 
 [`config/open_jdk_jre.yml`]: ../config/open_jdk_jre.yml
 [Configuration and Extension]: ../README.md#configuration-and-extension
-[centos6]: http://download.pivotal.io.s3.amazonaws.com/openjdk/centos6/x86_64/index.yml
 [Java Buildpack Memory Calculator]: https://github.com/cloudfoundry/java-buildpack-memory-calculator
-[lucid]: http://download.pivotal.io.s3.amazonaws.com/openjdk/lucid/x86_64/index.yml
 [mountainlion]: http://download.pivotal.io.s3.amazonaws.com/openjdk/mountainlion/x86_64/index.yml
 [OpenJDK]: http://openjdk.java.net
 [precise]: http://download.pivotal.io.s3.amazonaws.com/openjdk/precise/x86_64/index.yml
 [repositories]: extending-repositories.md
+[trusty]: http://download.pivotal.io.s3.amazonaws.com/openjdk/trusty/x86_64/index.yml
 [version syntax]: extending-repositories.md#version-syntax-and-ordering

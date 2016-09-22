@@ -9,21 +9,29 @@ AllCops:
     - 'build/**/*'
     - 'vendor/**/*'
 Metrics/AbcSize:
- Max: 18
+ Max: 22
 Metrics/ClassLength:
-  Max: 200
+  Max: 250
 Metrics/CyclomaticComplexity:
   Max: 10
 Metrics/LineLength:
   Max: 120
 Metrics/MethodLength:
-  Max: 17
+  Max: 18
 Metrics/ParameterLists:
   Max: 6
 Metrics/PerceivedComplexity:
   Max: 10
+RSpec/ExampleLength:
+  Max: 20
+RSpec/AnyInstance:
+  Enabled: false
 RSpec/FilePath:
   Enabled: false
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/NestedGroups:
+  MaxNesting: 4
 Style/Documentation:
   Enabled: false
 Style/EmptyLinesAroundBlockBody:
@@ -32,6 +40,8 @@ Style/EmptyLinesAroundBlockBody:
 Style/EmptyLinesAroundClassBody:
   Enabled: false
 Style/EmptyLinesAroundModuleBody:
+  Enabled: false
+Style/MethodMissing:
   Enabled: false
 Style/MultilineOperationIndentation:
   Enabled: false

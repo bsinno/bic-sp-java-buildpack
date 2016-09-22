@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright (c) 2013 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,19 +19,13 @@
 
 set -e
 
-SCRIPTDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-. $SCRIPTDIR/jbp-diagnostics-functions.sh
-upload_oom_heapdump_to_server "$1" "$2" "$3"
-
 echo "
 Process Status (Before)
 =======================
 $(ps -ef)
-
 ulimit (Before)
 ===============
 $(ulimit -a)
-
 Free Disk Space (Before)
 ========================
 $(df -h)
@@ -43,11 +37,9 @@ echo "
 Process Status (After)
 ======================
 $(ps -ef)
-
 ulimit (After)
 ==============
 $(ulimit -a)
-
 Free Disk Space (After)
 =======================
 $(df -h)
