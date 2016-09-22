@@ -37,7 +37,6 @@ memory_calculator:
     native: 20
     stack: 5
     permgen: 10
-
   memory_initials:
     heap: 100%
     metaspace: 100%
