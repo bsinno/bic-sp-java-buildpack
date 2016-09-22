@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2015 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,21 +28,23 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
-        download(@version, @uri) { |file| expand file }
+        download_tar
+        setup_ext_dir
+
         @droplet.copy_resources
 
         credentials = @application.services.find_service(FILTER)['credentials']
-        write_host_certificate credentials
-        write_client_certificate credentials
-        write_client_private_key credentials
-        write_host credentials
+        write_client credentials['client']
+        write_servers credentials['servers']
+        write_configuration credentials['servers'], credentials['groups']
       end
 
       # (see JavaBuildpack::Component::BaseComponent#release)
       def release
         @droplet.environment_variables.add_environment_variable 'ChrystokiConfigurationPath', @droplet.sandbox
 
-        @droplet.java_opts
+        @droplet
+          .java_opts
           .add_system_property('java.security.properties', @droplet.sandbox + 'java.security')
           .add_system_property('java.ext.dirs', ext_dirs)
       end
@@ -51,13 +53,12 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::VersionedDependencyComponent#supports?)
       def supports?
-        @application.services.one_service? FILTER, 'host', 'host-certificate', 'client-private-key',
-                                           'client-certificate'
+        @application.services.one_service? FILTER, 'client', 'servers', 'groups'
       end
 
       private
 
-      FILTER = /luna/.freeze
+      FILTER = /luna/
 
       private_constant :FILTER
 
@@ -66,83 +67,171 @@ module JavaBuildpack
       end
 
       def client_certificate
-        @droplet.sandbox + 'usr/safenet/lunaclient/cert/client/ClientNameCert.pem'
+        @droplet.sandbox + 'client-certificate.pem'
       end
 
       def client_private_key
-        @droplet.sandbox + 'usr/safenet/lunaclient/cert/client/ClientNameKey.pem'
+        @droplet.sandbox + 'client-private-key.pem'
       end
 
-      def expand(file)
-        with_timing "Expanding Luna Client to #{@droplet.sandbox.relative_path_from(@droplet.root)}" do
-          Dir.mktmpdir do |root|
-            root = Pathname.new(root)
+      def ext_dir
+        @droplet.sandbox + 'ext'
+      end
 
-            FileUtils.mkdir_p root
-            shell "tar x#{compression_flag(file)}f #{file.path} -C #{root} --strip 3 2>&1"
+      def luna_provider_jar
+        @droplet.sandbox + 'jsp/LunaProvider.jar'
+      end
 
-            install_client root
-          end
+      def luna_api_so
+        @droplet.sandbox + 'jsp/64/libLunaAPI.so'
+      end
+
+      def lib_cryptoki
+        @droplet.sandbox + 'libs/64/libCryptoki2.so'
+      end
+
+      def lib_cklog
+        @droplet.sandbox + 'libs/64/libcklog2.so'
+      end
+
+      def setup_ext_dir
+        FileUtils.mkdir ext_dir
+        [luna_provider_jar, luna_api_so].each do |file|
+          FileUtils.ln_s file.relative_path_from(ext_dir), ext_dir, force: true
         end
       end
 
       def ext_dirs
         "#{qualify_path(@droplet.java_home.root + 'lib/ext', @droplet.root)}:" \
-        "#{qualify_path(@droplet.sandbox + 'usr/safenet/lunaclient/jsp/lib', @droplet.root)}"
+        "#{qualify_path(ext_dir, @droplet.root)}"
       end
 
-      def host_certificate
-        @droplet.sandbox + 'usr/safenet/lunaclient/cert/server/CAFile.pem'
+      def logging?
+        @configuration['logging_enabled']
       end
 
-      def install_client(root)
-        FileUtils.mkdir_p @droplet.sandbox
+      def padded_index(index)
+        index.to_s.rjust(2, '0')
+      end
 
-        Dir.chdir(@droplet.sandbox) do
-          shell "#{rpm2cpio} < #{libcrpytoki root} | cpio -id ./usr/safenet/lunaclient/lib/libCryptoki2_64.so"
-          shell "#{rpm2cpio} < #{lunajsp root} | cpio -id ./usr/safenet/lunaclient/jsp/lib/*"
+      def relative(path)
+        path.relative_path_from(@droplet.root)
+      end
+
+      def server_certificates
+        @droplet.sandbox + 'server-certificates.pem'
+      end
+
+      def write_client(client)
+        FileUtils.mkdir_p client_certificate.parent
+        client_certificate.open(File::CREAT | File::WRONLY) do |f|
+          f.write "#{client['certificate']}\n"
+        end
+
+        FileUtils.mkdir_p client_private_key.parent
+        client_private_key.open(File::CREAT | File::WRONLY) do |f|
+          f.write "#{client['private-key']}\n"
         end
       end
 
-      def libcrpytoki(root)
-        Dir[root + 'libcryptoki-*.x86_64.rpm'][0]
+      def write_configuration(servers, groups)
+        chrystoki.open(File::APPEND | File::WRONLY) do |f|
+          write_prologue f
+          servers.each_with_index { |server, index| write_server f, index, server }
+          f.write <<EOS
+}
+
+VirtualToken = {
+EOS
+          groups.each_with_index { |group, index| write_group f, index, group }
+          write_epilogue f
+        end
       end
 
-      def lunajsp(root)
-        Dir[root + 'lunajsp-*.x86_64.rpm'][0]
+      def write_epilogue(f)
+        f.write <<EOS
+}
+
+HAConfiguration = {
+  AutoReconnectInterval = 60;
+  HAOnly = 1;
+  ReconnAtt = 20;
+}
+EOS
       end
 
-      def rpm2cpio
-        Pathname.new(File.expand_path('../rpm2cpio.py', __FILE__))
+      def write_group(f, index, group)
+        padded_index = padded_index index
+
+        f.write "  VirtualToken#{padded_index}Label   = #{group['label']};\n"
+        f.write "  VirtualToken#{padded_index}SN      = 1#{group['members'][0]};\n"
+        f.write "  VirtualToken#{padded_index}Members = #{group['members'].join(',')};\n"
+        f.write "\n"
       end
 
-      def write_client_certificate(credentials)
-        FileUtils.mkdir_p client_certificate.parent
-        client_certificate.open(File::CREAT | File::WRONLY) { |f| f.write credentials['client-certificate'] }
+      def write_lib(f)
+        f.write <<EOS
+
+Chrystoki2 = {
+EOS
+
+        if logging?
+          write_logging(f)
+        else
+          f.write <<EOS
+  LibUNIX64 = #{relative(lib_cryptoki)};
+}
+EOS
+        end
       end
 
-      def write_client_private_key(credentials)
-        FileUtils.mkdir_p client_private_key.parent
-        client_private_key.open(File::CREAT | File::WRONLY) { |f| f.write credentials['client-private-key'] }
+      def write_logging(f)
+        f.write <<EOS
+  LibUNIX64 = #{relative(lib_cklog)};
+}
+
+CkLog2 = {
+  Enabled      = 1;
+  LibUNIX64    = #{relative(lib_cryptoki)};
+  LoggingMask  = ALL_FUNC;
+  LogToStreams = 1;
+  NewFormat    = 1;
+}
+EOS
       end
 
-      def write_host_certificate(credentials)
-        FileUtils.mkdir_p host_certificate.parent
-        host_certificate.open(File::CREAT | File::WRONLY) { |f| f.write credentials['host-certificate'] }
+      def write_prologue(f)
+        write_lib(f)
+
+        f.write <<EOS
+
+LunaSA Client = {
+  NetClient = 1;
+
+  ClientCertFile    = #{relative(client_certificate)};
+  ClientPrivKeyFile = #{relative(client_private_key)};
+  HtlDir            = #{relative(@droplet.sandbox + 'htl')};
+  ServerCAFile      = #{relative(server_certificates)};
+
+EOS
       end
 
-      def write_host(credentials)
-        content = chrystoki.open(File::RDONLY) { |f| f.read }
-        content.gsub!(/@@HOST@@/, credentials['host'])
+      def write_server(f, index, server)
+        padded_index = padded_index index
 
-        chrystoki.open(File::CREAT | File::WRONLY) do |f|
-          f.truncate 0
-          f.write content
-          f.sync
+        f.write "  ServerName#{padded_index} = #{server['name']};\n"
+        f.write "  ServerPort#{padded_index} = 1792;\n"
+        f.write "  ServerHtl#{padded_index}  = 0;\n"
+        f.write "\n"
+      end
+
+      def write_servers(servers)
+        FileUtils.mkdir_p server_certificates.parent
+        server_certificates.open(File::CREAT | File::WRONLY) do |f|
+          servers.each { |server| f.write "#{server['certificate']}\n" }
         end
       end
 
     end
-
   end
 end

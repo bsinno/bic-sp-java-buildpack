@@ -1,6 +1,6 @@
 # Encoding: utf-8
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2015 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ module JavaBuildpack
 
       # (see JavaBuildpack::Component::BaseComponent#compile)
       def compile
-        start_script(root).chmod 0755
+        start_script(root).chmod 0o755
         augment_classpath_content
       end
 
@@ -44,6 +44,7 @@ module JavaBuildpack
           @droplet.environment_variables.as_env_vars,
           @droplet.java_home.as_env_var,
           @droplet.java_opts.as_env_var,
+          'exec',
           qualify_path(start_script(root), @droplet.root)
         ].flatten.compact.join(' ')
       end
@@ -54,7 +55,7 @@ module JavaBuildpack
       #
       # @return [String] the id of this container
       def id
-        fail "Method 'id' must be defined"
+        raise "Method 'id' must be defined"
       end
 
       # The root directory of the application
@@ -68,14 +69,14 @@ module JavaBuildpack
       #
       # @return [Boolean] whether or not this component supports this application
       def supports?
-        fail "Method 'supports?' must be defined"
+        raise "Method 'supports?' must be defined"
       end
 
       private
 
       PATTERN_APP_CLASSPATH = /^declare -r app_classpath=\"(.*)\"$/
 
-      PATTERN_CLASSPATH = /^CLASSPATH=(.*)$/.freeze
+      PATTERN_CLASSPATH = /^CLASSPATH=(.*)$/
 
       private_constant :PATTERN_APP_CLASSPATH, :PATTERN_CLASSPATH
 
