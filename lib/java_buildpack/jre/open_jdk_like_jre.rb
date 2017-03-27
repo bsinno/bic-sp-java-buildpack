@@ -54,12 +54,14 @@ module JavaBuildpack
         @droplet.copy_resources
       end
 
-      # (see JavaBuildpack::Component::BaseComponent#release)
+     # (see JavaBuildpack::Component::BaseComponent#release)
       def release
-        @droplet
-          .java_opts
+        toolPath = qualify_path_tool(@droplet.java_home.root) + "/lib/tools.jar"
+        @droplet.java_opts
           .add_system_property('java.io.tmpdir', '$TMPDIR')
           .push('-XX:+HeapDumpOnOutOfMemoryError')
+          .push('-Xbootclasspath/a:/app/'+ toolPath)
+          .add_option('-XX:HeapDumpPath', '$PWD/oom_heapdump_work.hprof')
           .add_option('-XX:OnOutOfMemoryError',  killjava )
           .concat memory
       end
@@ -73,12 +75,16 @@ module JavaBuildpack
       VERSION_8 = JavaBuildpack::Util::TokenizedVersion.new('1.8.0').freeze
 
       private_constant :KEY_MEMORY_HEURISTICS, :KEY_MEMORY_SIZES, :VERSION_8
-      
+
       def qualify_path(path, root = @droplet.root)
         "$PWD/#{path.relative_path_from(root)}"
       end
-      
-      
+
+      def qualify_path_tool(path, root = @droplet.root)
+        "#{path.relative_path_from(root)}"
+      end
+
+
       def killjava
         if @application.services.one_service?'heapdump-uploader'
           credentials = @application.services.find_service('heapdump-uploader')['credentials']
